@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quiz Frontend</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Quiz App (Frontend)</h1>
+
+    <section id="create-section">
+      <h2>Create Quiz</h2>
+      <form id="create-form">
+        <label>Question text<br>
+          <input type="text" id="questionText" required />
+        </label>
+        <label>Type<br>
+          <select id="type">
+            <option value="MCQ">MCQ</option>
+            <option value="True/False">True/False</option>
+            <option value="text">text</option>
+          </select>
+        </label>
+        <label>Options (comma separated, required for MCQ/True/False)<br>
+          <input type="text" id="options" placeholder="e.g. A,B,C,D" />
+        </label>
+        <label>Answer (comma separated for multiple answers)<br>
+          <input type="text" id="answer" placeholder="e.g. 4 or A or true" />
+        </label>
+        <button type="submit">Create</button>
+      </form>
+      <div id="create-result" class="result"></div>
+    </section>
+
+    <hr />
+
+    <section id="list-section">
+      <h2>Available Quizzes</h2>
+      <button id="refresh">Refresh list</button>
+      <div id="quizzes"></div>
+      <div id="submit-result" class="result"></div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

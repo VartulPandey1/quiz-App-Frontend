@@ -1,70 +1,88 @@
-# Getting Started with Create React App
+# Quiz App (React frontend)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This React frontend is a simple Quiz application UI.
 
-## Available Scripts
+It expects a backend that exposes quiz metadata and quiz detail endpoints. This README documents how to run the frontend, the expected API contract (field names and types) used by the components, and quick troubleshooting steps specific to this implementation.
 
-In the project directory, you can run:
+## Quick start
 
-### `npm start`
+Requirements:
+- Node.js (LTS) and npm
+- A running backend exposing the quiz endpoints (defaults to http://localhost:3000)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Install and run the app:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```powershell
+npm install
+npm start
+```
 
-### `npm test`
+Open http://localhost:3000 in your browser to view the app.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Where to look in the code
+- `src/component/QuizList.js` — lists quizzes and starts a quiz (calls GET /quiz and GET /quiz/:id)
+- `src/component/QuizPage.js` — renders a quiz, supports MCQ / true-false / short-answer and performs client-side grading
+- `src/component/ResultPage.js` — displays score and reset button
 
-### `npm run build`
+## Backend API contract (expected shapes)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+1) GET /quiz
+- Response: array of quiz metadata. Example:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```json
+[
+  { "_id": "quiz1", "title": "JavaScript Basics" },
+  { "_id": "quiz2", "title": "React Basics" }
+]
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2) GET /quiz/:id
+- Response: a quiz object with this shape (fields used by the frontend):
 
-### `npm run eject`
+```json
+{
+  "_id": "quiz1",
+  "title": "JavaScript Basics",
+  "questions": [
+    {
+      "_id": "q1",
+      "questionText": "Which is a primitive?",
+      "type": "MCQ", // the frontend handles either a string or an array like ["MCQ"]
+      "options": [
+        { "_id": "o1", "text": "Object" },
+        { "_id": "o2", "text": "String" }
+      ],
+      "answer": "o2"
+    }
+  ]
+}
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Notes:
+- The frontend uses `_id` for stable IDs and `questionText` for the question prompt.
+- Options should be an array under `options` where each option has `_id` and `text`. The frontend also tolerates options that are plain strings or slightly different names (e.g., `choices`).
+- `type` may be a string ("MCQ", "true/false", "short answer") or an array where the first element is the type; the frontend handles both.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## How grading works
+- `QuizPage` performs client-side grading when you press Submit. It compares the user's answers (keyed by question `_id`) with the `answer` field on each question.
+- Short-answer comparisons are case-insensitive and trimmed. MCQ and true/false compare string values.
+- `QuizPage` calls its `onSubmit` callback with an object: `{ score, total, answers }`.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Troubleshooting
+- Blank quiz list or buttons:
+  - Check GET /quiz response in the browser DevTools network tab.
+  - Ensure the items contain `_id` and `title`.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- Quiz page shows questions but no options:
+  - Check GET /quiz/:id response. Confirm `questions[].options` is present and non-empty. Options may be an array of objects with `_id` and `text`, or an array of strings.
+  - If your backend uses different names (e.g., `choices` or `answers`), tell me and I will adapt the frontend to that exact shape.
 
-## Learn More
+- Console errors in the browser:
+  - Copy and paste the error text here and I will help diagnose it.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Next improvements (optional)
+- Server-side grading: POST answers to an endpoint and let the backend return `{ score, total }`.
+- Show per-question feedback (correct/incorrect) after submit.
+- Add tests for rendering and grading logic.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+If you want, paste a sample quiz JSON (the full response from GET /quiz/:id) and I will adapt the frontend to match it exactly.
